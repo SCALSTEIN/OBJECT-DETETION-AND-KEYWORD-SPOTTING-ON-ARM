@@ -1,0 +1,46 @@
+// Example code snippet (C++/Arduino-like syntax)
+#include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/version.h"
+
+// Define model variables
+constexpr int kTensorArenaSize = 200 * 1024;
+alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
+
+// Set up TensorFlow Lite interpreter
+static tflite::MicroErrorReporter micro_error_reporter;
+static tflite::ops::micro::AllOpsResolver resolver;
+static const tflite::Model* model = nullptr;
+static tflite::MicroInterpreter* interpreter = nullptr;
+
+// Load TensorFlow Lite model
+model = tflite::GetModel(your_model_data);
+if (model->version() != TFLITE_SCHEMA_VERSION) {
+    TF_LITE_REPORT_ERROR(&micro_error_reporter,
+                         "Model provided is schema version %d not equal "
+                         "to supported version %d.",
+                         model->version(), TFLITE_SCHEMA_VERSION);
+    return;
+}
+
+// Build TensorFlow Lite interpreter
+interpreter = new tflite::MicroInterpreter(model, resolver, tensor_arena,
+                                           kTensorArenaSize, &micro_error_reporter);
+interpreter->AllocateTensors();
+
+// Run inference
+float* input = interpreter->input(0)->data.f;
+// Fill input buffer with your data
+
+// Invoke interpreter
+TfLiteStatus invoke_status = interpreter->Invoke();
+if (invoke_status != kTfLiteOk) {
+    TF_LITE_REPORT_ERROR(&micro_error_reporter, "Error invoking model");
+    return;
+}
+
+// Get output
+TfLiteTensor* output = interpreter->output(0);
+// Process output (e.g., determine if keyword detected)
